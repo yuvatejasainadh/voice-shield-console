@@ -4,8 +4,8 @@ import { useConsole } from '../../context/ConsoleContext';
 
 export const LoginView: React.FC = () => {
   const { login, apiError, clearApiError, isLoading } = useConsole();
-  const [email, setEmail] = useState('sainadh@voiceshield.internal');
-  const [password, setPassword] = useState('SuperAdmin123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
   const [rememberSession, setRememberSession] = useState(true);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -152,23 +152,12 @@ export const LoginView: React.FC = () => {
           </button>
         </form>
 
-        {/* Quick Demo Switcher */}
         <div className="mt-6 pt-5 border-t border-[#252930]">
           <div className="text-[10px] uppercase font-mono tracking-wider text-[#9AA0A6] mb-2.5">
-            Production Operator Credentials
+            Production access
           </div>
-          <div className="space-y-1.5">
-            <button
-              type="button"
-              onClick={() => handleQuickLogin('sainadh@voiceshield.internal', 'SuperAdmin123!')}
-              className="w-full p-2.5 rounded-[2px] bg-[#0B0C0E] hover:bg-[#15181D] border border-[#252930] text-left transition-colors cursor-pointer flex items-center justify-between"
-            >
-              <div>
-                <div className="font-medium text-[#F1F3F4] text-xs">Sainadh (Super Admin)</div>
-                <div className="text-[10px] text-[#6F757D] font-mono">sainadh@voiceshield.internal</div>
-              </div>
-              <div className="text-[10px] text-[#8AB4F8] font-mono font-medium">SUPER_ADMIN</div>
-            </button>
+          <div className="text-[10px] text-[#6F757D] font-mono">
+            Use your authorized VoiceShield credentials to sign in.
           </div>
         </div>
       </div>

@@ -313,17 +313,8 @@ export const ConsoleProvider: React.FC<{ children: React.ReactNode }> = ({ child
     async function initSession() {
       setIsLoading(true);
       const token = tokenStorage.getAccessToken();
-      const explicitlyLoggedOut = localStorage.getItem('vs_console_logged_out') === 'true';
 
       if (!token) {
-        if (!explicitlyLoggedOut) {
-          try {
-            await login('sainadh@voiceshield.internal', 'SuperAdmin123!');
-            return;
-          } catch (autoErr) {
-            console.warn('Initial session boot failed:', autoErr);
-          }
-        }
         setIsAuthenticated(false);
         setIsLoading(false);
         return;
@@ -362,12 +353,12 @@ export const ConsoleProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [refreshAllData]);
 
   // Login handler
-  const login = async (email: string, password = 'SuperAdmin123!'): Promise<boolean> => {
+  const login = async (email: string, password?: string): Promise<boolean> => {
     setIsLoading(true);
     setApiError(null);
     localStorage.removeItem('vs_console_logged_out');
     try {
-      const data = await authApi.login(email, password);
+      const data = await authApi.login(email, password || '');
       const userObj: User = {
         id: data.user.id,
         name: data.user.displayName || data.user.email.split('@')[0],
@@ -395,13 +386,18 @@ export const ConsoleProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Logout handler
   const logout = async () => {
     localStorage.setItem('vs_console_logged_out', 'true');
-    await authApi.logout();
+    try {
+      await authApi.logout();
+    } catch {
+      // Backend logout may fail, but the frontend session should still be cleared.
+    }
+    tokenStorage.clearTokens();
     setIsAuthenticated(false);
     setCurrentUser(null);
     setCurrentRoute('overview');
   };
 
-  // Switch User (simulate persona in demo or switch to existing backend user)
+  // Switch to an existing backend user when authorized access is available.
   const switchUser = async (userId: string) => {
     const target = users.find((u) => u.id === userId);
     if (!target) return;
@@ -748,7 +744,7 @@ export const ConsoleProvider: React.FC<{ children: React.ReactNode }> = ({ child
         email: user.email,
         displayName: user.name,
         role: user.role,
-        password: 'Password123!',
+        password: `${user.name.replace(/\s+/g, '').slice(0, 8)}!TempPass${Date.now().toString().slice(-6)}`,
       });
       setUsers((prev) => [created, ...prev]);
     } catch (err: any) {
@@ -796,8 +792,8 @@ export const ConsoleProvider: React.FC<{ children: React.ReactNode }> = ({ child
       resource,
       resourceId,
       result: 'SUCCESS',
-      ipAddress: '10.240.12.8',
-      userAgent: 'VoiceShield-Console/v1.0.0 (Production)',
+      ipAddress: 'unknown',
+      userAgent: 'VoiceShield-Console',
       details,
     };
     setAuditEvents((prev) => [newEvent, ...prev]);

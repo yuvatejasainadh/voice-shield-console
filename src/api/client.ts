@@ -3,9 +3,11 @@
  * Connects directly to production backend at https://vs-console-server.onrender.com/api/v1
  */
 
-const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') ||
-  'https://vs-console-server.onrender.com/api/v1';
+export const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL || 'https://vs-console-server.onrender.com/api/v1').replace(/\/+$/, '');
+
+export const HEALTH_BASE_URL =
+  (import.meta.env.VITE_HEALTH_BASE_URL || 'https://vs-console-server.onrender.com/health').replace(/\/+$/, '');
 
 export interface ApiErrorDetail {
   field?: string;
@@ -45,22 +47,35 @@ export interface ApiResponse<T = unknown> {
 const ACCESS_TOKEN_KEY = 'vs_console_access_token';
 const REFRESH_TOKEN_KEY = 'vs_console_refresh_token';
 
+function getStorage(): Storage | null {
+  if (typeof globalThis === 'undefined' || !('localStorage' in globalThis)) {
+    return null;
+  }
+  return globalThis.localStorage;
+}
+
 export const tokenStorage = {
   getAccessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
+    const storage = getStorage();
+    return storage ? storage.getItem(ACCESS_TOKEN_KEY) : null;
   },
   getRefreshToken(): string | null {
-    return localStorage.getItem(REFRESH_TOKEN_KEY);
+    const storage = getStorage();
+    return storage ? storage.getItem(REFRESH_TOKEN_KEY) : null;
   },
   setTokens(accessToken: string, refreshToken?: string): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    const storage = getStorage();
+    if (!storage) return;
+    storage.setItem(ACCESS_TOKEN_KEY, accessToken);
     if (refreshToken) {
-      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     }
   },
   clearTokens(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    const storage = getStorage();
+    if (!storage) return;
+    storage.removeItem(ACCESS_TOKEN_KEY);
+    storage.removeItem(REFRESH_TOKEN_KEY);
   },
 };
 
@@ -84,7 +99,7 @@ async function performTokenRefresh(): Promise<string> {
     throw new ApiError('No refresh token available', 'SESSION_EXPIRED', 401);
   }
 
-  const res = await fetch(`${BASE_URL}/auth/refresh`, {
+  const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
@@ -110,7 +125,7 @@ export interface RequestOptions extends RequestInit {
 export async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
   const { params, skipAuth = false, headers: customHeaders, ...fetchOpts } = options;
 
-  let url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  let url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
 
   if (params) {
     const query = new URLSearchParams();
@@ -182,7 +197,9 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
         refreshSubscribers = [];
         tokenStorage.clearTokens();
         // Dispatch session expired custom event so app shell can react
-        window.dispatchEvent(new CustomEvent('vs-session-expired'));
+        if (typeof globalThis.dispatchEvent === 'function') {
+          globalThis.dispatchEvent(new CustomEvent('vs-session-expired'));
+        }
         throw refreshErr;
       }
     } else {

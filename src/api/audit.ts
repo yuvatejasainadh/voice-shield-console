@@ -39,8 +39,8 @@ export function normalizeAudit(raw: BackendAuditRaw, userMap?: Record<string, st
     resource,
     resourceId: raw.metadata?.instance || raw.requestId || raw.request_id || raw.id.slice(0, 8),
     result: 'SUCCESS',
-    ipAddress: raw.ipAddress || raw.ip_address || '127.0.0.1',
-    userAgent: raw.userAgent || raw.user_agent || 'Mozilla/5.0 (Console/Production)',
+    ipAddress: raw.ipAddress || raw.ip_address || 'unknown',
+    userAgent: raw.userAgent || raw.user_agent || 'unknown',
     details: {
       summary: `${action.replace(/_/g, ' ')} on ${resource}`,
       payload: raw.metadata,

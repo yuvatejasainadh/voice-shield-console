@@ -1,4 +1,4 @@
-import { apiClient, tokenStorage } from './client';
+import { apiClient, tokenStorage, API_BASE_URL } from './client';
 import { DatabaseExportRecord } from '../types';
 
 export interface BackendExportRaw {
@@ -20,17 +20,17 @@ export interface BackendExportRaw {
 export function normalizeExport(raw: BackendExportRaw): DatabaseExportRecord {
   return {
     id: raw.id,
-    requestedBy: raw.requestedBy || raw.requested_by || 'Admin',
-    requestedByName: 'Sainadh (SUPER_ADMIN)',
+    requestedBy: raw.requestedBy || raw.requested_by || '',
+    requestedByName: raw.requestedBy || raw.requested_by || 'Unknown',
     format: raw.format,
-    targetDatabase: raw.database_name || 'voiceshield_console',
-    targetSchema: raw.schema_name || 'public',
+    targetDatabase: raw.database_name || '',
+    targetSchema: raw.schema_name || '',
     tables: raw.tables || [],
-    status: raw.status || 'COMPLETED',
-    fileSize: raw.file_size || '1.8 MB',
-    checksumSha256: 'sha256:' + raw.id.slice(0, 16),
+    status: raw.status || 'PENDING',
+    fileSize: raw.file_size || '0 B',
+    checksumSha256: raw.id ? `sha256:${raw.id.slice(0, 16)}` : '',
     createdAt: raw.created_at || new Date().toISOString(),
-    completedAt: raw.completed_at || new Date().toISOString(),
+    completedAt: raw.completed_at || undefined,
   };
 }
 
@@ -50,10 +50,9 @@ export const exportsApi = {
   },
 
   async downloadExport(exportId: string, format = 'sql'): Promise<void> {
-    const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'https://vs-console-server.onrender.com/api/v1';
     const token = tokenStorage.getAccessToken();
 
-    const response = await fetch(`${base}/exports/${exportId}/download`, {
+    const response = await fetch(`${API_BASE_URL}/exports/${exportId}/download`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
 

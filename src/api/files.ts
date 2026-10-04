@@ -1,4 +1,4 @@
-import { apiClient, ApiResponse } from './client';
+import { apiClient, API_BASE_URL } from './client';
 
 export interface UploadedFile {
   id: string;
@@ -46,7 +46,6 @@ export const filesApi = {
   },
 
   getDownloadUrl(id: string): string {
-    const base = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') || 'https://vs-console-server.onrender.com/api/v1';
-    return `${base}/files/${id}/download`;
+    return `${API_BASE_URL}/files/${id}/download`;
   },
 };

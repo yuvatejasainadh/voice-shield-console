@@ -6,24 +6,24 @@ export const databaseApi = {
     const res = await apiClient<any>('/database/status', { method: 'GET' });
     const d = res.data || {};
     return {
-      engine: d.engine || 'PostgreSQL',
-      engineVersion: d.version || '18.3',
-      status: d.status || 'AVAILABLE',
-      endpoint: 'voiceshield-prod-rds.internal:5432',
-      port: 5432,
-      databaseName: d.database || 'voiceshield_console',
-      region: d.region || 'us-east-1',
-      allocatedStorageGb: d.storage?.allocatedGb ?? 100,
-      usedStorageGb: d.storage?.usedGb ?? 14.8,
-      storageType: d.storage?.storageType || 'gp3',
-      cpuUtilizationPercent: 4.2,
-      freeableMemoryMb: 3450,
-      activeConnections: d.connectionPool?.activeConnections ?? 1,
-      maxConnections: d.connectionPool?.maxConnections ?? 5,
-      multiAz: true,
-      autoMinorVersionUpgrade: true,
-      backupRetentionDays: d.backupInformation?.retentionDays ?? 30,
-      lastBackupTime: d.backupInformation?.lastBackup || new Date().toISOString(),
+      engine: d.engine || 'UNKNOWN',
+      engineVersion: d.engineVersion || d.version || 'UNKNOWN',
+      status: d.status || 'UNKNOWN',
+      endpoint: d.endpoint || '',
+      port: d.port ?? 0,
+      databaseName: d.databaseName || d.database || '',
+      region: d.region || '',
+      allocatedStorageGb: d.storage?.allocatedGb ?? 0,
+      usedStorageGb: d.storage?.usedGb ?? 0,
+      storageType: d.storage?.storageType || '',
+      cpuUtilizationPercent: d.cpuUtilizationPercent ?? undefined,
+      freeableMemoryMb: d.freeableMemoryMb ?? undefined,
+      activeConnections: d.connectionPool?.activeConnections ?? 0,
+      maxConnections: d.connectionPool?.maxConnections ?? 0,
+      multiAz: !!d.multiAz,
+      autoMinorVersionUpgrade: !!d.autoMinorVersionUpgrade,
+      backupRetentionDays: d.backupInformation?.retentionDays ?? undefined,
+      lastBackupTime: d.backupInformation?.lastBackup || undefined,
     };
   },
 
@@ -65,11 +65,8 @@ export const databaseApi = {
       return {
         name: table,
         rowCount: 0,
-        sizeBytes: '0 KB',
-        columns: [
-          { name: 'id', type: 'uuid', nullable: false, isPrimaryKey: true },
-          { name: 'created_at', type: 'timestamptz', nullable: false, isPrimaryKey: false },
-        ],
+        sizeBytes: '0 B',
+        columns: [],
       };
     }
   },

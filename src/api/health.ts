@@ -1,3 +1,5 @@
+import { HEALTH_BASE_URL } from './client';
+
 export interface HealthLiveResponse {
   status: 'UP' | 'DOWN';
   uptime?: number;
@@ -16,13 +18,8 @@ export interface HealthReadyResponse {
 
 export const healthApi = {
   async getLive(): Promise<HealthLiveResponse> {
-    const base = (
-      import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') ||
-      'https://vs-console-server.onrender.com'
-    ).replace(/\/+$/, '');
-
     try {
-      const res = await fetch(`${base}/health/live`);
+      const res = await fetch(`${HEALTH_BASE_URL}/live`);
       return await res.json();
     } catch {
       return { status: 'DOWN' };
@@ -30,13 +27,8 @@ export const healthApi = {
   },
 
   async getReady(): Promise<HealthReadyResponse> {
-    const base = (
-      import.meta.env.VITE_API_BASE_URL?.replace(/\/api\/v1\/?$/, '') ||
-      'https://vs-console-server.onrender.com'
-    ).replace(/\/+$/, '');
-
     try {
-      const res = await fetch(`${base}/health/ready`);
+      const res = await fetch(`${HEALTH_BASE_URL}/ready`);
       return await res.json();
     } catch {
       return { status: 'NOT_READY' };
