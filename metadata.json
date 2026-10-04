@@ -1,0 +1,6 @@
+{
+  "name": "VoiceShield Console",
+  "description": "Internal engineering, testing, operations, and infrastructure management control plane for VoiceShield.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
